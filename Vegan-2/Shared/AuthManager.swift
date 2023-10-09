@@ -10,13 +10,11 @@ import FirebaseFirestore
 
 class AuthManager: ObservableObject {
     @Published var isUserAuthenticated: Bool = false
-    private let db = FirestoreManager.shared
+    //private let db = FirestoreManager.shared
     
     static let shared = AuthManager()
     
     private let auth: Auth
-    
-    var currentUserDocument: DocumentReference? = nil
     
     private init() {
         auth = Auth.auth()

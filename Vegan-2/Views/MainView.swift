@@ -12,12 +12,31 @@ struct MainView: View {
     @State private var selectedTab = 0
     //@ObservedObject var userViewModel = UserViewModel()
     //var userViewModel = UserViewModel(user: User(firstName: "", lastName: "", email: "", userName: "", profilePicture: UIImage(), submittedRecipes: [], likedRecipes: [], following: [], followers: [], id: ""))
+    /*@ObservedObject var recipeStore = RecipeStore()
     @StateObject var userViewModel = UserViewModel()
-    @ObservedObject var recipeViewModel = RecipeViewModel.shared
+    @ObservedObject var recipeReelViewModel = RecipeReelViewModel(recipeStore: recipeStore)*/
+    
+    /*var recipeStore: RecipeStore
+    var userViewModel: UserViewModel
+    var recipeReelViewModel: RecipeReelViewModel
+    
+    init() {
+        recipeStore = RecipeStore()
+        userViewModel = UserViewModel()
+        recipeReelViewModel = RecipeReelViewModel(recipeStore: recipeStore)
+    }*/
+    
+        @ObservedObject var userViewModel: UserViewModel
+        @ObservedObject var recipeReelViewModel: RecipeReelViewModel
+        
+        init() {
+            self.userViewModel = UserViewModel()
+            self.recipeReelViewModel = RecipeReelViewModel()
+        }
     
     var body: some View {
         TabView(selection: $selectedTab) {
-            RecipeReelView(userViewModel: userViewModel).tabItem {
+            RecipeReelView(recipeReelViewModel: recipeReelViewModel, userViewModel: userViewModel).tabItem {
                 if (selectedTab == 0) {
                     Image(systemName: "house").environment(\.symbolVariants, .fill) }
                 else {
@@ -76,7 +95,8 @@ struct MainView: View {
             //RegisterView().tabItem { Image(systemName: "face.smiling") }.tag(4)
         }.accentColor(.gray)
             .onAppear {
-                recipeViewModel.fetchRecipes(count: 3)
+                recipeReelViewModel.fetchRecipes(count: 3)
+                //recipeStore.fetchRecipes(count: 3)
                 userViewModel.fetchUserData()
                 //let _ = print("\(userViewModel.email)111111111111111111111111")
             }

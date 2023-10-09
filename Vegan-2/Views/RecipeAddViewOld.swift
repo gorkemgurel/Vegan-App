@@ -2,10 +2,10 @@
 //  RecipeAddView.swift
 //  Vegan-2
 //
-//  Created by Gorkem Gurel on 9.10.2023.
+//  Created by Gorkem Gurel on 20.07.2023.
 //
 
-import Foundation
+/*import Foundation
 import SwiftUI
 import PhotosUI
 
@@ -15,8 +15,7 @@ struct RecipeAddView: View {
     @StateObject var recipeViewModel = RecipeViewModel.shared
     @State var readyToNavigateToCamera = false
     @State var readyToNavigateToThumbnail = false
-    //@State var indexToPass = -1
-    
+    @State var indexToPass = -1
     @State private var titleText: String = ""
     @State private var descriptionText: String = ""
     @State private var prepTimeText: String = ""
@@ -230,3 +229,5 @@ struct RecipeAddView: View {
         }
     }
 }
+
+*/

@@ -88,7 +88,7 @@ class RecipeViewModel: ObservableObject {
                 print("Failed to get or convert cover image URL for id: \(id)")
             }
         } else {
-            //print("Cover image already exists for the given id: \(id)")
+            print("Cover image already exists for the given id: \(id)")
         }
     }
     
