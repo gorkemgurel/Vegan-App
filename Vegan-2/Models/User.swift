@@ -9,27 +9,16 @@ import Foundation
 import SwiftUI
 
 struct User: Identifiable {
-    var firstName: String?
-    var lastName: String?
-    var email: String?
-    var userName: String?
-    var profilePhoto: UIImage?
-    var submittedRecipes: [String]?
-    var likedRecipes: [String]?
-    var following: [String]?
-    var followers: [String]?
-    var id: String?
-}
-
-/*struct User: Identifiable {
     var firstName: String = ""
     var lastName: String = ""
     var email: String = ""
     var userName: String = ""
-    var profilePicture: UIImage = UIImage()
+    var profilePhoto: UIImage?
+    var profilePhotoURL: String?
     var submittedRecipes: [String] = []
     var likedRecipes: [String] = []
     var following: [String] = []
     var followers: [String] = []
-    var id: String = ""
-}*/
+    var userID: String?
+    var id: UUID?
+}

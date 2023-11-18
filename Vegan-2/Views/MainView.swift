@@ -27,30 +27,110 @@ struct MainView: View {
     }*/
     
         @ObservedObject var userViewModel: UserViewModel
-        @ObservedObject var recipeReelViewModel: RecipeReelViewModel
+        @ObservedObject var reelViewModel: ReelViewModel
+        @ObservedObject var exploreViewModel: ExploreViewModel
+        @ObservedObject var recipeAddViewModel: RecipeAddViewModel
         
         init() {
             self.userViewModel = UserViewModel()
-            self.recipeReelViewModel = RecipeReelViewModel()
+            self.reelViewModel = ReelViewModel()
+            self.exploreViewModel = ExploreViewModel()
+            self.recipeAddViewModel = RecipeAddViewModel()
+            if #available(iOS 15, *) {
+                let tabBarAppearance: UITabBarAppearance = UITabBarAppearance()
+                   tabBarAppearance.configureWithOpaqueBackground()
+                    UITabBar.appearance().standardAppearance = tabBarAppearance
+                    UITabBar.appearance().scrollEdgeAppearance = tabBarAppearance
+            }
         }
     
     var body: some View {
         TabView(selection: $selectedTab) {
-            RecipeReelView(recipeReelViewModel: recipeReelViewModel, userViewModel: userViewModel).tabItem {
+            ReelView(reelViewModel: reelViewModel, userViewModel: userViewModel).tabItem {
+                if (selectedTab == 0) {
+                    VStack {
+                        Text("")
+                        Image("house.fill")
+                    }
+                }
+                else {
+                    VStack {
+                        Text("")
+                        Image("house")
+                    }
+                }
+            }.tag(0)
+            ExploreView(exploreViewModel: exploreViewModel).tabItem {
+                if (selectedTab == 1) {
+                    VStack {
+                        Text("")
+                        Image("magnifier.fill")
+                    }
+                }
+                else {
+                    VStack {
+                        Text("")
+                        Image("magnifier")
+                    }
+                }
+            }.tag(1)
+            RecipeAddView(recipeAddViewModel: recipeAddViewModel).tabItem {
+                if (selectedTab == 2) {
+                    VStack {
+                        Text("")
+                        Image("pan.fill")
+                    }
+                }
+                else {
+                    VStack {
+                        Text("")
+                        Image("pan")
+                    }
+                }
+            }.tag(2)
+            ChatListView().tabItem {
+                if (selectedTab == 3) {
+                    VStack {
+                        Text("")
+                        Image("message.fill")
+                    }
+                }
+                else {
+                    VStack {
+                        Text("")
+                        Image("message")
+                    }
+                }
+            }.tag(3)
+            UserView(userViewModel: userViewModel, selectedTab: .constant(4)).tabItem {
+                if (selectedTab == 4) {
+                    VStack {
+                        Text("")
+                        Image("person.fill")
+                    }
+                }
+                else {
+                    VStack {
+                        Text("")
+                        Image("person")
+                    }
+                }
+            }.tag(4)
+            /*ReelView(reelViewModel: reelViewModel, userViewModel: userViewModel).tabItem {
                 if (selectedTab == 0) {
                     Image(systemName: "house").environment(\.symbolVariants, .fill) }
                 else {
                     Image(systemName: "house").environment(\.symbolVariants, .none)
                 }
             }.tag(0)
-            ExploreView().tabItem {
+            ExploreView(exploreViewModel: exploreViewModel).tabItem {
                 if (selectedTab == 1) {
                     Image(systemName: "magnifyingglass.circle").environment(\.symbolVariants, .fill) }
                 else {
                     Image(systemName: "magnifyingglass.circle").environment(\.symbolVariants, .none)
                 }
             }.tag(1)
-            RecipeAddView().tabItem {
+            RecipeAddView(recipeAddViewModel: recipeAddViewModel).tabItem {
                 if (selectedTab == 2) {
                     Image(systemName: "frying.pan").environment(\.symbolVariants, .fill) }
                 else {
@@ -70,7 +150,7 @@ struct MainView: View {
                 else {
                     Image(systemName: "person").environment(\.symbolVariants, .none)
                 }
-            }.tag(4)
+            }.tag(4)*/
             /*ApprovalView().tabItem {
                 if (selectedTab == 5) {
                     Image(systemName: "clock").environment(\.symbolVariants, .fill) }
@@ -95,7 +175,8 @@ struct MainView: View {
             //RegisterView().tabItem { Image(systemName: "face.smiling") }.tag(4)
         }.accentColor(.gray)
             .onAppear {
-                recipeReelViewModel.fetchRecipes(count: 3)
+                reelViewModel.fetchRecipesForReels(count: 3)
+                exploreViewModel.fetchRecipesForExplore(count: 9)
                 //recipeStore.fetchRecipes(count: 3)
                 userViewModel.fetchUserData()
                 //let _ = print("\(userViewModel.email)111111111111111111111111")

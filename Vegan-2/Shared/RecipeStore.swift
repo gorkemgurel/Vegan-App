@@ -15,17 +15,17 @@ class RecipeStore: ObservableObject {
     private let db = FirestoreManager.shared
     private let firebaseAuth = AuthManager.shared
     
+    @Published var uniqueRecipes: [String: Recipe] = [:]
+    
     private let currentUserDocumentRef: DocumentReference
     private let recipesCollectionRef: CollectionReference
-    
-    @Published var uniqueRecipes: [String: Recipe] = [:]
     
     init() {
         currentUserDocumentRef = db.getFirestore().collection("users").document(firebaseAuth.getAuth().currentUser!.uid)
         recipesCollectionRef = currentUserDocumentRef.collection("recipes")
     }
     
-    func fetchRecipes(count: Int, completion: @escaping (RecipeID?) -> Void) {
+    /*func fetchRecipes(count: Int, completion: @escaping (RecipeID?) -> Void) {
         for _ in 0 ..< count {
             let key = recipesCollectionRef.document().documentID
             
@@ -43,9 +43,40 @@ class RecipeStore: ObservableObject {
                 }
             }
         }
-    }
+    }*/
     
-    func attemptFetchWithCondition(isLess: Bool, using key: String, randomField: String, completion: @escaping (RecipeID?) -> Void) {
+    func fetchRecipes(count: Int, completion: @escaping ([Recipe]) -> Void) {
+        var results: [Recipe] = []
+        let group = DispatchGroup()
+        
+        for _ in 0 ..< count {
+            group.enter()
+            let key = recipesCollectionRef.document().documentID
+            let shouldTryLessFirst = Bool.random()
+            let randomField = "\(Int.random(in: 1...3))"
+            
+            let fetchCompletion: (Recipe?) -> Void = { docID in
+                if let docID = docID {
+                    results.append(docID)
+                }
+                group.leave()
+            }
+            
+            if shouldTryLessFirst {
+                attemptFetchWithCondition(isLess: true, using: key, randomField: randomField, completion: fetchCompletion)
+            } else {
+                attemptFetchWithCondition(isLess: false, using: key, randomField: randomField, completion: fetchCompletion)
+            }
+        }
+        
+        group.notify(queue: .main) {
+            //print(results)
+            completion(results)
+        }
+    }
+
+    
+    func attemptFetchWithCondition(isLess: Bool, using key: String, randomField: String, completion: @escaping (Recipe?) -> Void) {
         if isLess {
             recipesCollectionRef.whereField("random.\(randomField)", isLessThanOrEqualTo: key).order(by: "random.\(randomField)", descending: true).limit(to: 1).getDocuments() { (snapshot, error) in
                 if let error = error {
@@ -61,11 +92,12 @@ class RecipeStore: ObservableObject {
                             
                         }
                         
-                        completion(RecipeID(id: UUID(), recipeID: document.documentID))
+                        //completion(RecipeID(id: UUID(), recipeID: document.documentID))
+                        completion(recipe)
                     }
                 } else {
-                    self.attemptFetchWithCondition(isLess: false, using: key, randomField: randomField) { docID in
-                        completion(docID)
+                    self.attemptFetchWithCondition(isLess: false, using: key, randomField: randomField) { recipe in
+                        completion(recipe)
                     }
                 }
             }
@@ -84,12 +116,13 @@ class RecipeStore: ObservableObject {
                             self.uniqueRecipes[document.documentID] = recipe
                         }
                         
-                        completion(RecipeID(id: UUID(), recipeID: document.documentID))
+                        //completion(RecipeID(id: UUID(), recipeID: document.documentID))
+                        completion(recipe)
                         
                     }
                 } else {
-                    self.attemptFetchWithCondition(isLess: true, using: key, randomField: randomField) { docID in
-                        completion(docID)
+                    self.attemptFetchWithCondition(isLess: true, using: key, randomField: randomField) { recipe in
+                        completion(recipe)
                     }
                 }
             }
@@ -134,100 +167,62 @@ class RecipeStore: ObservableObject {
                 if let stepInstruction = steps["stepInstruction"] as? String,
                    let stepPhotoURL = steps["stepPhotoURL"] as? String {
                     let step = Step(stepInstruction: stepInstruction, stepPhotoURL: stepPhotoURL)
+                    recipe.steps.append(step)
+                }
+            }
+        }
+        
+        recipe.recipeID = document.documentID
+        recipe.id = UUID()
+        
+        return recipe
+    }
+    
+    /*private func recipeFromDocument(_ document: QueryDocumentSnapshot) -> Recipe {
+        var recipe = Recipe()
+        
+        if let title = document.data()["title"] as? String {
+            recipe.title = title
+        }
+        
+        if let description = document.data()["description"] as? String {
+            recipe.description = description
+        }
+        
+        if let coverPhotoURL = document.data()["coverPhotoURL"] as? String {
+            recipe.coverPhotoURL = coverPhotoURL
+        }
+        
+        if let prepTime = document.data()["prepTime"] as? String {
+            recipe.prepTime = prepTime
+        }
+        
+        if let servingSize = document.data()["servingSize"] as? Int {
+            recipe.servingSize = servingSize
+        }
+        
+        if let category = document.data()["category"] as? String {
+            recipe.category = category
+        }
+        
+        if let userID = document.data()["userID"] as? String {
+            recipe.userID = userID
+        }
+        
+        if let stepData = document.data()["steps"] as? [[String: Any]] {
+            recipe.steps = []
+            
+            for steps in stepData {
+                if let stepInstruction = steps["stepInstruction"] as? String,
+                   let stepPhotoURL = steps["stepPhotoURL"] as? String {
+                    let step = Step(stepInstruction: stepInstruction, stepPhotoURL: stepPhotoURL)
                     recipe.steps?.append(step)
                 }
             }
         }
         
-        recipe.id = document.documentID
+        //recipe.id = document.documentID
         
         return recipe
-    }
-    
-    func downloadAndAssignCoverImage(for id: String) async {
-        if uniqueRecipes[id]?.coverPhoto == nil {
-            if let coverImageURL = uniqueRecipes[id]?.coverPhotoURL,
-               let url = URL(string: coverImageURL),
-               let image = try? await downloadPhoto(from: url.absoluteString) {
-                
-                DispatchQueue.main.async {
-                    self.uniqueRecipes[id]?.coverPhoto = image
-                }
-                
-            } else {
-                print("Failed to get or convert cover image URL for id: \(id)")
-            }
-        } else {
-            print("Cover image already exists for the given id: \(id)")
-        }
-    }
-    
-    func downloadAndAssignCoverPhoto(for id: String) async {
-        print("Hell")
-        if uniqueRecipes[id]?.coverPhoto == nil {
-            if let coverPhotoURL = uniqueRecipes[id]?.coverPhotoURL,
-               let url = URL(string: coverPhotoURL) {
-                
-                do {
-                    let image = try await downloadPhoto(from: url.absoluteString)
-                    DispatchQueue.main.async {
-                        self.uniqueRecipes[id]?.coverPhoto = image
-                    }
-                } catch let error as PhotoDownloadError {
-                    switch error {
-                    case .invalidURL:
-                        print("Error: Invalid URL for id: \(id)")
-                    case .failedDownload:
-                        print("Error: Download failed for id: \(id)")
-                    }
-                } catch {
-                    print("Unexpected error for id \(id): \(error).")
-                }
-                
-            } else {
-                print("Failed to get or convert cover image URL for idZZZZZ: \(id)")
-            }
-        } else {
-            print("Cover image already exists for the given id: \(id)")
-        }
-    }
-
-    
-    func downloadAndAssignStepPhotos(for recipeID: String, atIndex index: Int) async {
-        if (uniqueRecipes[recipeID]?.steps?[index].stepPhoto == nil) {
-            if let stepPhotoURL = uniqueRecipes[recipeID]?.steps?[index].stepPhotoURL,
-               let url = URL(string: stepPhotoURL),
-               let photo = try? await downloadPhoto(from: url.absoluteString) {
-                DispatchQueue.main.async {
-                    self.uniqueRecipes[recipeID]?.steps?[index].stepPhoto = photo
-                }
-            } else {
-                print("Failed to get or convert cover photo URL for id: \(recipeID)")
-            }
-        } else {
-            //print("Step image already exists for the given id: \(id) and index: \(index)")
-        }
-    }
-    
-    enum PhotoDownloadError: Error {
-        case invalidURL
-        case failedDownload
-    }
-
-    func downloadPhoto(from urlString: String) async throws -> UIImage {
-        guard let url = URL(string: urlString) else {
-            throw PhotoDownloadError.invalidURL
-        }
-        
-        do {
-            let (data, _) = try await URLSession.shared.data(from: url)
-            if let uiImage = UIImage(data: data) {
-                return uiImage
-            } else {
-                throw PhotoDownloadError.failedDownload
-            }
-        } catch {
-            throw PhotoDownloadError.failedDownload
-        }
-    }
+    }*/
 }

@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct RecipeID: Identifiable {
+/*struct RecipeID: Identifiable {
     var id: UUID?
     var recipeID: String?
-}
+}*/
