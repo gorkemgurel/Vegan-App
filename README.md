@@ -25,3 +25,4 @@ Kullanıcı kimlik doğrulama ve veri saklama için **Firebase** kullanılmaktad
 - Firebase Authentication
 - Firebase Firestore
 
+This project is licensed under the [MIT License](LICENSE).
