@@ -1,4 +1,4 @@
-# Yemek Tarifi Uygulaması
+# Veganik
 
 <p>
   <img src="https://github.com/user-attachments/assets/955929ce-ee5f-4adc-a399-665756a1ddad" width="300" />
